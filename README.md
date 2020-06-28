@@ -39,14 +39,14 @@ Nota2: Modbus no es esclusivo de dispositivos de la firma Schneider Electric
 
 
 ### CRIMSON
-![redLion](redLion.png)
+![redLion](crimson/redLion.png)
 
 ## Uso / usage
 
 	usr@pwn:~$ python helloCrimson.py <crimson device> 
 
 ## poc	
-![poc](pocs.png)
+![poc](crimson/pocs.png)
 
 
 
