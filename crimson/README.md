@@ -3,14 +3,10 @@
 
 ## Uso / usage
 
-	usr@pwn:~$ python hello_crimson.py <crimson device> 
+	usr@pwn:~$ python helloCrimson.py <crimson device> 
 
 ## poc	
 ![poc](pocs.png)
-
-
-
-
 
 
 Saludos,

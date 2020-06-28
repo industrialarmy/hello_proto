@@ -36,11 +36,16 @@ def crimson(nObj):
  
 totFRm = len(tramaX)   
 print "\n"
- 
-for objN in range(0,totFRm):
-    crimsonDesc     = str(crimson(int(objN)))
-    desc            =_crimson_obj_description[objN]
-    print " [+] "+desc+":  \t "+crimsonDesc[6:]
- 
- 
-print "\n"
+
+
+def reqCrm():
+    _response_crimson = []
+    for objN in range(0,totFRm):
+        crimsonDesc     = str(crimson(int(objN)))
+        desc            =_crimson_obj_description[objN]
+        rsp = desc+": "+crimsonDesc[6:]
+        _response_crimson.append(str(rsp)[:-1])
+    
+    return _response_crimson
+
+print reqCrm()
