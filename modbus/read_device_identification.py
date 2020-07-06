@@ -15,16 +15,17 @@ except ImportError:
 host = sys.argv[1]
 port = 502
 bufsize = 2048
+unit_id = "\x00"
 payload = (
     "\x44\x62" # Transaction Identifier
     "\x00\x00" # Protocol Identifier
     "\x00\x05" # Length
-    "\x00"     # Unit Identifier
+    "{}"       # Unit Identifier
     "\x2b"     # .010 1011 = Function Code: Encapsulated Interface Transport (43)
     "\x0e"     # MEI type: Read Device Identification (14)
     "\x03"     # Read Device ID: Extended Device Identification (3)
     "\x00"     # Object ID: VendorName (0)
-)
+).format(unit_id)
 
 object_name = { 
     0: "VendorName",
@@ -63,6 +64,31 @@ mbtcp = {
 def dec(hex):
     return int(hex, 16)
 
+# Main Modbus exception codes
+def handle_exception_codes(code):
+    if code == b'ab01':
+        print("{} [!] Illegal Function: Function code received in the query is not recognized or allowed by slave.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab02':
+        print("{} [!] Illegal Data Address: Data address of some or all the required entities are not allowed or do not exist in slave.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab03':
+        print("{} [!] Illegal Data Value: Value is not accepted by slave.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab04':
+        print("{} [!] Slave Device Failure: Unrecoverable error occurred while slave was attempting to perform requested action.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab05':
+        print("{} [!] Acknowledge: Slave has accepted request and is processing it, but a long duration of time is required.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab06':
+        print("{} [!] Slave Device Busy: Slave is engaged in processing a long-duration command.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab07':
+        print("{} [!] Negative Acknowledge: Slave cannot perform the programming functions.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab08':
+        print("{} [!] Memory Parity Error: Slave detected a parity error in memory.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab0a':
+        print("{} [!]  Gateway Path Unavailable: Specialized for Modbus gateways. Indicates a misconfigured gateway.".format(Fore.RED, Fore.RESET))
+    elif code == b'ab0b':
+        print("{} [!] Gateway Target Device Failed to Respond: Specialized for Modbus gateways.".format(Fore.RED, Fore.RESET))
+    else:
+        print("{} [!] MODBUS - received incorrect data #{ data[mbtcp['func_code']['start'], 2].inspect }".format(Fore.RED, Fore.RESET))
+
 def parse_response(data):
     data = binascii.hexlify(data)
     unit_id = data[mbtcp["unit_id"]["start"]:mbtcp["unit_id"]["end"]]
@@ -71,8 +97,8 @@ def parse_response(data):
     print("{} [+] Host:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, host, Fore.RESET))
     print("{} [+] Port:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, str(port), Fore.RESET))
     print("{} [+] Unit Identifier:\t{}{}{}".format(Fore.BLUE, Fore.YELLOW, unit_id.decode("utf-8"), Fore.RESET))
- 
-    try:
+
+    if data[mbtcp["func_code"]["start"]:mbtcp["mei"]["end"]] == b'2b0e':
         num_objects = data[mbtcp["num_objects"]["start"]:mbtcp["num_objects"]["end"]]
         print("{} [+] Number of Objects: {}{}{}".format(Fore.BLUE, Fore.YELLOW, dec(num_objects), Fore.RESET))
         print("")
@@ -86,7 +112,6 @@ def parse_response(data):
             object["len"]       = data[end_id:end_len] # len in bytes
             end_str_value       = end_len + (dec(object["len"]) * 2)
             object["str_value"] = data[end_len:end_str_value]
-
             try:
                 object["name"] = object_name[dec(object["id"])]
             except:
@@ -103,14 +128,21 @@ def parse_response(data):
 
             object_start = end_str_value
         print("")
-    except Exception as e:
-        print("{} [!] MODBUS - did not receive data.{}".format(Fore.RED, Fore.RESET))
-        print(e)
+
+    else:
+        print("")
+        handle_exception_codes(data[mbtcp["func_code"]["start"]:mbtcp["mei"]["end"]])
+        print("")
+
         
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((host, port))
-client.send(payload.encode())
-data = client.recv(bufsize)
-client.close()
+try:
+    client.connect((host, port))
+    client.send(payload.encode())
+    data = client.recv(bufsize)
+    client.close()
+    parse_response(data)
+except Exception as e:
+    print("\n{} [!] MODBUS - did not receive data.{}\n".format(Fore.RED, Fore.RESET))
+    print(e)
 
-parse_response(data)
