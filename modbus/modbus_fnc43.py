@@ -1,99 +1,113 @@
-# -*- coding: utf-8 -*-
+# @Author: Ezequiel Fernandez
+# @Author: Juan Escobar @itsecurityco
+
+import binascii
 import socket
 import sys
+
+from colorama import Fore, Back, init
+init()
  
-mbIP = sys.argv[1]
-mbPort = int(502)
-SID =  "\x00" #SLAVE ID.
- 
-class Colors:
-    BLUE        = '\033[94m'
-    GREEN       = '\033[32m'
-    RED         = '\033[0;31m'
-    DEFAULT     = '\033[0m'
-    ORANGE      = '\033[33m'
-    WHITE       = '\033[97m'
-    BOLD        = '\033[1m'
-    BR_COLOUR   = '\033[1;37;40m'
- 
-_modbus_obj_description = { 
-                        0: "VendorName",   
-                        1: "ProductCode",  
-                        #2: "MajorMinorRevision",
-                        2: "Revision",     
-                        3: "VendorUrl",
-                        4: "ProductName",  
-                        5: "ModelName",
-                        #6: "UserApplicationName",
-                        6: "User App Name",
-                        7: "Reserved", 
-                        8: "Reserved", 
-                        9: "Reserved", 
-                        10: "Reserved",
-                        128: "Private objects",
-                        255: "Private objects"
-                        }
-# ------------------------------------------------------------------------------ #
- 
- 
-def getDevInfo(mvIdentification):
- 
-    aframe = mvIdentification.encode("hex")
- 
-    print "\n"
-    print  Colors.BLUE+' [+] Host: \t\t' +Colors.RED+mbIP+Colors.DEFAULT
-    print  Colors.BLUE+' [+] Port: \t\t' +Colors.ORANGE+str(mbPort)+Colors.DEFAULT
-    print  Colors.BLUE+' [+] Slave ID: \t\t' +Colors.RED+aframe[12:14]+Colors.DEFAULT
- 
-    respCode    = aframe[14:16]
-    totalObjs   = aframe[26:28]
-    firstObj    = 28
+
+host = sys.argv[1]
+port = 502
+bufsize = 2048
+payload = (
+    "\x44\x62" # Transaction Identifier
+    "\x00\x00" # Protocol Identifier
+    "\x00\x05" # Length
+    "\x00"     # Unit Identifier
+    "\x2b"     # .010 1011 = Function Code: Encapsulated Interface Transport (43)
+    "\x0e"     # MEI type: Read Device Identification (14)
+    "\x03"     # Read Device ID: Extended Device Identification (3)
+    "\x00"     # Object ID: VendorName (0)
+)
+
+object_name = { 
+    0: "VendorName",
+    1: "ProductCode",
+    2: "MajorMinorRevision",
+    3: "VendorUrl",
+    4: "ProductName",
+    5: "ModelName",
+    6: "UserAppName",
+    7: "Reserved",
+    8: "Reserved",
+    9: "Reserved",
+    10: "Reserved",
+    128: "PrivateObjects",
+    255: "PrivateObjects"
+}
+
+# Modbus/TCP Response Bytes
+mbtcp = {
+    "trans_id":         { "start":  0, "bytes": 2, "length": 4, "end":  4 },
+    "prot_id":          { "start":  4, "bytes": 2, "length": 4, "end":  8 },
+    "len":              { "start":  8, "bytes": 2, "length": 4, "end": 12 },
+    "unit_id":          { "start": 12, "bytes": 1, "length": 2, "end": 14 },
+    "func_code":        { "start": 14, "bytes": 1, "length": 2, "end": 16 },
+    "mei":              { "start": 16, "bytes": 1, "length": 2, "end": 18 },
+    "read_device_id":   { "start": 18, "bytes": 1, "length": 2, "end": 20 },
+    "conformity_level": { "start": 20, "bytes": 1, "length": 2, "end": 22 },
+    "more_follows":     { "start": 22, "bytes": 1, "length": 2, "end": 24 },
+    "next_object_id":   { "start": 24, "bytes": 1, "length": 2, "end": 26 },
+    "num_objects":      { "start": 26, "bytes": 1, "length": 2, "end": 28 },
+    "object_id":        { "start": 28, "bytes": 1, "length": 2, "end": 30 },
+    "objects_len":      { "start": 30, "bytes": 1, "length": 2, "end": 32 },
+    "object_str_value": { "start": 32, "bytes": None, "length": None, "end": None }
+}
+
+def dec(hex):
+    return int(hex, 16)
+
+def parse_response(data):
+    data = binascii.hexlify(data)
+    unit_id = data[mbtcp["unit_id"]["start"]:mbtcp["unit_id"]["end"]]
+    
+    print("")
+    print("{} [+] Host:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, host, Fore.RESET))
+    print("{} [+] Port:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, str(port), Fore.RESET))
+    print("{} [+] Unit Identifier:\t{}{}{}".format(Fore.BLUE, Fore.YELLOW, unit_id.decode("utf-8"), Fore.RESET))
  
     try:
-        try:
-            objTot = aframe[26:28]
-            nObjeto = int(objTot,16)
-        except:
-            #objTot = '0'
-            nObjeto = int('0',10)
- 
-        print Colors.BLUE+' [+] TotalObj: \t\t'+Colors.RED+str(nObjeto)+"\n"+Colors.DEFAULT
-        pInicial = 28
- 
-        for i in xrange(0,nObjeto):
-            pInicial+=4
-            longitud = aframe[pInicial-2:pInicial]
-            longitud = int(longitud,16)
-                             
-            valueStr = aframe[pInicial:pInicial+longitud *2 ]
-            objVal   = valueStr.decode("hex")
- 
+        num_objects = data[mbtcp["num_objects"]["start"]:mbtcp["num_objects"]["end"]]
+        print("{} [+] Number of Objects: {}{}{}".format(Fore.BLUE, Fore.YELLOW, dec(num_objects), Fore.RESET))
+        print("")
+        
+        object_start = mbtcp["object_id"]["start"]
+        for i in range(dec(num_objects)):
+            object              = {}
+            end_id              = object_start + mbtcp["object_id"]["length"]
+            object["id"]        = data[object_start:end_id]
+            end_len             = end_id + mbtcp["objects_len"]["length"]
+            object["len"]       = data[end_id:end_len] # len in bytes
+            end_str_value       = end_len + (dec(object["len"]) * 2)
+            object["str_value"] = data[end_len:end_str_value]
+
             try:
-                obj_nm =_modbus_obj_description[i]
+                object["name"] = object_name[dec(object["id"])]
             except:
-                obj_nm ='objName X'
- 
-            print Colors.BOLD+ " [*]  "+Colors.GREEN+ obj_nm +': \t'+Colors.ORANGE+objVal+Colors.DEFAULT
-            pInicial+=longitud*2
-     
-    except Exception, e:
-        print  Colors.BR_COLOUR+Colors.RED+'\n [!] no device info' + Colors.DEFAULT
-        print e
-     
-    print "\n"
- 
-# ------------------------------------------------------------------------------ #
-  
-def fn43():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((mbIP,mbPort))
- 
-    client.send( "\x44\x62\x00\x00\x00\x05"+SID+"\x2b\x0e\x03\x00")
-    modResponse = client.recv(2048)
- 
-    client.close()
-    return modResponse
- 
- 
-devInfo = fn43()
-getDevInfo(devInfo)
+                object["name"] = "Name X"
+
+            print("{} [*] {}{}: {}{}{}".format(
+                Fore.WHITE,
+                Fore.GREEN,
+                object["name"],
+                Fore.YELLOW,
+                binascii.unhexlify(object["str_value"]).decode("utf-8"),
+                Fore.RESET
+            ))
+
+            object_start = end_str_value
+        print("")
+    except Exception as e:
+        print("{} [!] MODBUS - did not receive data.{}".format(Fore.RED, Fore.RESET))
+        print(e)
+        
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((host, port))
+client.send(payload.encode())
+data = client.recv(bufsize)
+client.close()
+
+parse_response(data)
