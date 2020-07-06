@@ -67,27 +67,27 @@ def dec(hex):
 # Main Modbus exception codes
 def handle_exception_codes(code):
     if code == b'ab01':
-        print("{} [!] Illegal Function: Function code received in the query is not recognized or allowed by slave.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Illegal Function: Function code received in the query is not recognized or allowed by slave.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab02':
-        print("{} [!] Illegal Data Address: Data address of some or all the required entities are not allowed or do not exist in slave.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Illegal Data Address: Data address of some or all the required entities are not allowed or do not exist in slave.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab03':
-        print("{} [!] Illegal Data Value: Value is not accepted by slave.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Illegal Data Value: Value is not accepted by slave.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab04':
-        print("{} [!] Slave Device Failure: Unrecoverable error occurred while slave was attempting to perform requested action.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Slave Device Failure: Unrecoverable error occurred while slave was attempting to perform requested action.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab05':
-        print("{} [!] Acknowledge: Slave has accepted request and is processing it, but a long duration of time is required.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Acknowledge: Slave has accepted request and is processing it, but a long duration of time is required.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab06':
-        print("{} [!] Slave Device Busy: Slave is engaged in processing a long-duration command.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Slave Device Busy: Slave is engaged in processing a long-duration command.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab07':
-        print("{} [!] Negative Acknowledge: Slave cannot perform the programming functions.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Negative Acknowledge: Slave cannot perform the programming functions.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab08':
-        print("{} [!] Memory Parity Error: Slave detected a parity error in memory.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Memory Parity Error: Slave detected a parity error in memory.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab0a':
-        print("{} [!]  Gateway Path Unavailable: Specialized for Modbus gateways. Indicates a misconfigured gateway.".format(Fore.RED, Fore.RESET))
+        print("{} [!]  Gateway Path Unavailable: Specialized for Modbus gateways. Indicates a misconfigured gateway.{}".format(Fore.RED, Fore.RESET))
     elif code == b'ab0b':
-        print("{} [!] Gateway Target Device Failed to Respond: Specialized for Modbus gateways.".format(Fore.RED, Fore.RESET))
+        print("{} [!] Gateway Target Device Failed to Respond: Specialized for Modbus gateways.{}".format(Fore.RED, Fore.RESET))
     else:
-        print("{} [!] MODBUS - received incorrect data #{ data[mbtcp['func_code']['start'], 2].inspect }".format(Fore.RED, Fore.RESET))
+        print("{} [!] MODBUS - received incorrect data {}{}".format(Fore.RED, code, Fore.RESET))
 
 def parse_response(data):
     data = binascii.hexlify(data)
