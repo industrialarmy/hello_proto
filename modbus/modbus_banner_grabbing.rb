@@ -5,6 +5,8 @@
 
 class MetasploitModule < Msf::Auxiliary
   include Msf::Exploit::Remote::Tcp
+  include Msf::Auxiliary::Report
+  include Msf::Auxiliary::Scanner
 
   def initialize(info = {})
     super(update_info(info,
@@ -64,11 +66,11 @@ class MetasploitModule < Msf::Auxiliary
     end
   end
 
-  def run
+  def run_host(ip)
     object_name = {
       0   => "VendorName",
       1   => "ProductCode",
-      2   => "MajorMinorRevision",
+      2   => "Revision",
       3   => "VendorUrl",
       4   => "ProductName",
       5   => "ModelName",
@@ -134,6 +136,15 @@ class MetasploitModule < Msf::Auxiliary
 
             print_good("#{ object['name'] }: #{ object['str_value'] }")
             object_start = object_start + mbtcp['object_id']['bytes'] + mbtcp['objects_len']['bytes'] + object['len']
+
+            report_note(
+              :host => ip,
+              :proto => 'tcp',
+              :port => rport,
+              :sname => 'modbus',
+              :type => "modbus.#{ object['name'].downcase }",
+              :data => object['str_value']
+            )
           end
         else
           handle_exception_codes(data[mbtcp['func_code']['start'], 2])
