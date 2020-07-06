@@ -5,9 +5,12 @@ import binascii
 import socket
 import sys
 
-from colorama import Fore, Back, init
-init()
- 
+try:
+    from colorama import Fore, Back, init
+    init()
+except ImportError:
+    print("Colorama is not installed: {cmd}".format(cmd = "sudo pip3 install colorama"))
+    exit(1)
 
 host = sys.argv[1]
 port = 502
