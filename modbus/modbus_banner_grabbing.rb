@@ -144,9 +144,11 @@ class MetasploitModule < Msf::Auxiliary
     rescue ::Interrupt
       print_error("MODBUS - Interrupt during payload")
       raise $!
-    rescue ::Rex::HostUnreachable, ::Rex::ConnectionTimeout, ::Rex::ConnectionRefused => e
+    rescue ::Rex::HostUnreachable, ::Rex::ConnectionError, ::Rex::ConnectionTimeout, ::Rex::ConnectionRefused => e
       print_error("MODBUS - Network error during payload: #{e}")
       return nil
+    rescue ::EOFError
+      print_error("MODBUS - No reply")
     end
 
     def cleanup
