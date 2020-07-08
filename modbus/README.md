@@ -4,7 +4,7 @@ Modbus: "Banner Grabbing"
 ### MODBUS/TCP
 
 Functions codes definition
-![poc_1](../../info/modbusFNC43.png)
+![poc_1](../info/modbusFNC43.png)
 
 ## SCRIPTS:
 ## $ modbus_fnc43.py
