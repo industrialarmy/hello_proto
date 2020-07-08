@@ -3,9 +3,18 @@ import socket
 import sys
  
 mbIP    = sys.argv[1]
-mbPort  = sys.argv[2]
-SID     = sys.argv[3]
- 
+
+
+try:
+    mbPort  = sys.argv[2]
+except:
+    mbPort  = 502
+
+try:
+    SID = sys.argv[3]
+except:
+    SID = '00' 
+
 class Colors:
     BLUE        = '\033[94m'
     GREEN       = '\033[32m'

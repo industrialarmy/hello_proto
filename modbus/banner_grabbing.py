@@ -13,7 +13,12 @@ except ImportError:
     exit(1)
 
 host = sys.argv[1]
-port = 502
+try:
+    port = int(sys.argv[2])
+except:
+    port = 502
+
+
 bufsize = 2048
 unit_id = "\x00"
 payload = (
