@@ -6,10 +6,8 @@ Modbus: "Banner Grabbing"
 Functions codes definition
 ![poc_1](../info/modbusFNC43.png)
 
-
 # Scripts 
-### banner_grabbing.py
-
+### $ modbus_fnc43.py
 **Install:** 
 
 `pip3 install -r requirements.txt`
@@ -22,10 +20,14 @@ Functions codes definition
 optional arguments:
   -h, --help  show this help message and exit
   -port PORT  Destination port
+  -slaveid SLAVEID  SlaveID
 ```
 
-
-## PoC
+## poc	
+![poc_1](screenshot/poc_1.png)
+![poc_2](screenshot/poc_2.png)
+![poc_2](screenshot/poc_3.png)
+![poc_2](screenshot/poc_4.png)
 ![poc_2](screenshot/poc_b_4.png)
 
 # Metasploit module
@@ -40,14 +42,4 @@ optional arguments:
 ![msf_module](screenshot/poc_msf_3.png)
 ![msf_module](screenshot/poc_msf_4.png)
 
-## $ modbus_fnc43.py
-Note: requires "python2.7"
-
-	usr@pwn:~$ python modbus_fnc43.py < modbus_host > < port > < slave_id >
-
-## poc	
-![poc_1](screenshot/poc_1.png)
-![poc_2](screenshot/poc_2.png)
-![poc_2](screenshot/poc_3.png)
-![poc_2](screenshot/poc_4.png)
 
