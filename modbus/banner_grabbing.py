@@ -3,21 +3,24 @@
 
 import binascii
 import socket
-import sys
+import argparse
 
 try:
     from colorama import Fore, Back, init
     init()
 except ImportError:
-    print("Colorama is not installed: {cmd}".format(cmd = "sudo pip3 install colorama"))
+    print("Colorama is not installed: {cmd}".format(cmd = "pip3 install -r requirements"))
     exit(1)
 
-host = sys.argv[1]
-try:
-    port = int(sys.argv[2])
-except:
-    port = 502
 
+parser = argparse.ArgumentParser()
+parser.add_argument("host", help="Destination host", type=str)
+parser.add_argument("-port", help="Destination port", required=False, type=int)
+
+args = parser.parse_args()
+
+host = args.host
+port = args.port if args.port else 502
 
 bufsize = 2048
 unit_id = "\x00"
@@ -32,7 +35,7 @@ payload = (
     "\x00"     # Object ID: VendorName (0)
 ).format(unit_id)
 
-object_name = { 
+object_name = {
     0: "VendorName",
     1: "ProductCode",
     2: "MajorMinorRevision",
@@ -97,7 +100,7 @@ def handle_exception_codes(code):
 def parse_response(data):
     data = binascii.hexlify(data)
     unit_id = data[mbtcp["unit_id"]["start"]:mbtcp["unit_id"]["end"]]
-    
+
     print("")
     print("{} [+] Host:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, host, Fore.RESET))
     print("{} [+] Port:\t\t{}{}{}".format(Fore.BLUE, Fore.RED, str(port), Fore.RESET))
@@ -107,7 +110,7 @@ def parse_response(data):
         num_objects = data[mbtcp["num_objects"]["start"]:mbtcp["num_objects"]["end"]]
         print("{} [+] Number of Objects: {}{}{}".format(Fore.BLUE, Fore.YELLOW, dec(num_objects), Fore.RESET))
         print("")
-        
+
         object_start = mbtcp["object_id"]["start"]
         for i in range(dec(num_objects)):
             object              = {}
@@ -139,7 +142,7 @@ def parse_response(data):
         handle_exception_codes(data[mbtcp["func_code"]["start"]:mbtcp["mei"]["end"]])
         print("")
 
-        
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client.connect((host, port))
