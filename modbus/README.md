@@ -6,24 +6,28 @@ Modbus: "Banner Grabbing"
 Functions codes definition
 ![poc_1](../info/modbusFNC43.png)
 
-## SCRIPTS:
-## $ modbus_fnc43.py
-Note: requires "python2.7"
+# Scripts 
+### $ modbus_fnc43.py
+**Install:** 
 
-	usr@pwn:~$ python modbus_fnc43.py < modbus_host > < port > < slave_id >
+`pip3 install -r requirements.txt`
+
+**usage:**	
+
+`usr@pwn:~$ python3 banner_grabbing.py <modbus_host>`  
+
+```
+optional arguments:
+  -h, --help  show this help message and exit
+  -port PORT  Destination port
+  -slaveid SLAVEID  SlaveID
+```
 
 ## poc	
 ![poc_1](screenshot/poc_1.png)
 ![poc_2](screenshot/poc_2.png)
 ![poc_2](screenshot/poc_3.png)
 ![poc_2](screenshot/poc_4.png)
-
-## usage: banner_grabbing.py
-Note: requires "python3"
-	
-	usr@pwn:~$ python3 banner_grabbing.py < modbus_host > < port >
-
-## poc	
 ![poc_2](screenshot/poc_b_4.png)
 
 # Metasploit module
@@ -34,6 +38,8 @@ Note: requires "python3"
 	RHOSTS => 192.168.0.22
 	msf5 auxiliary(scanner/scada/modbus_banner_grabbing) > run
 	
-## poc
+## PoC
 ![msf_module](screenshot/poc_msf_3.png)
 ![msf_module](screenshot/poc_msf_4.png)
+
+
