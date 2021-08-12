@@ -34,7 +34,7 @@ object_name = {
     3: "VendorUrl",
     4: "ProductName",
     5: "ModelName",
-    6: "UserAppName",
+    6: "UserApplicationName",
     7: "Reserved",
     8: "Reserved",
     9: "Reserved",
@@ -120,7 +120,7 @@ def parse_response(data):
             print("{} [*] {}{}: {}{}{}".format(
                 Fore.WHITE,
                 Fore.GREEN,
-                object["name"],
+                object["name"].ljust(20),
                 Fore.YELLOW,
                 binascii.unhexlify(object["str_value"]).decode("utf-8"),
                 Fore.RESET
